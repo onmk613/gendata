@@ -1,0 +1,12 @@
+*.env
+*.exe
+*.swp
+.DS_Store
+.vscode/
+.idea
+.vimrc
+vendor/
+build/
+dist/
+.pre-commit-config.yaml
+bin/
