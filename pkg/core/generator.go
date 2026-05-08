@@ -12,8 +12,8 @@ var TableName string
 
 // 默认的数据结构
 type DefaultTableRow struct {
-	ID           int     `gorm:"primaryKey"`
-	UserID       string  `gorm:"column:user_id"`
+	ID           int     `gorm:"primaryKey;autoIncrement"`
+	UserID       string  `gorm:"column:user_id;uniqueIndex"`
 	Name         string  `gorm:"column:name"`
 	Phone        string  `gorm:"column:phone"`
 	Gender       string  `gorm:"column:gender"`

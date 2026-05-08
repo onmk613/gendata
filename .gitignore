@@ -6,6 +6,7 @@
 .idea
 .vimrc
 vendor/
+test*
 build/
 dist/
 .pre-commit-config.yaml
