@@ -23,6 +23,7 @@ type WriteConfiguration struct {
 	Concurrency int
 	BatchSize   int
 	RepeatCount int
+	RowSize     int
 }
 
 func logBatchStats(i, j int, insertTime time.Duration, batchSize int) {

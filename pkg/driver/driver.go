@@ -17,10 +17,11 @@ var (
 	DB *gorm.DB
 )
 
-func GetDriver(driverName string) error {
+func GetDriver(driverName string, size int) error {
 	var open gorm.Dialector
 	dsn := SqlConf
 
+	// 配置dsn
 	switch driverName {
 	case "mysql":
 		open = mysql.Open(dsn.getMysqlDsn())
@@ -32,6 +33,7 @@ func GetDriver(driverName string) error {
 		return fmt.Errorf("Unsupported Database")
 	}
 
+	// 连接数据库
 	db, err := gorm.Open(open, &gorm.Config{
 		Logger: logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags),
@@ -46,10 +48,15 @@ func GetDriver(driverName string) error {
 	if err != nil {
 		return err
 	}
+
+	// 注册插入控制插件
+	db.Use(NewBatchPlugin(size))
+
 	DB = db
 	return nil
 }
 
+// 结束数据库
 func CloseDB() {
 	if DB != nil {
 		sqlDB, _ := DB.DB()

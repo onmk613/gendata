@@ -25,6 +25,9 @@ func NewRootCmd(args []string) (*cobra.Command, error) {
 	flags.ParseErrorsAllowlist.UnknownFlags = true
 	flags.Parse(args)
 
+	// 在flag解析之后立即设置日志
+	setupLogger()
+
 	cmd.AddCommand(newMysqlCmd(), newPostgresCmd(), newClickhouseCmd())
 	return cmd, nil
 }

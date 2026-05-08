@@ -15,7 +15,6 @@ type SqlConfiguration struct {
 	User           string
 	Password       string
 	DBName         string
-	Table          string
 	AdditionalArgs map[string]string
 }
 
