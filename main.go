@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	"gendata/pkg/cmd"
+	"gendata/cmd"
 )
 
 func main() {

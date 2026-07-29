@@ -1,8 +1,9 @@
 package generator
 
 import (
-	"gendata/pkg/generator/data"
 	"math/rand/v2"
+
+	"gendata/internal/generator/data"
 )
 
 func Currency() string {

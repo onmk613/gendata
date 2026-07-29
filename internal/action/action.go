@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"gendata/pkg/core"
-	mydriver "gendata/pkg/driver"
+	"gendata/internal/core"
+	mydriver "gendata/internal/driver"
 )
 
 func Run(driverName string) error {
@@ -19,7 +19,7 @@ func Run(driverName string) error {
 	}
 
 	// 连接数据库
-	if err := mydriver.GetDriver(driverName, count); err != nil {
+	if err := mydriver.GetDriver(driverName, count, WriteConf.Concurrency); err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 	if mydriver.DB == nil {
@@ -45,11 +45,13 @@ func Run(driverName string) error {
 
 func genDefaultDataAndInsert() error {
 	var wg sync.WaitGroup
+	var errMu sync.Mutex
+	var firstErr error
 
 	// 并发控制
 	for i := 0; i < WriteConf.Concurrency; i++ {
 		wg.Add(1)
-		go func() {
+		go func(i int) {
 			defer wg.Done()
 			// 写入次数控制
 			for j := 0; j < WriteConf.RepeatCount; j++ {
@@ -60,17 +62,24 @@ func genDefaultDataAndInsert() error {
 				slog.Info("gen_data_time", slog.Any("time", b))
 
 				startInsert := time.Now()
-				mydriver.DB.Create(rows)
+				if err := mydriver.DB.Create(rows).Error; err != nil {
+					errMu.Lock()
+					if firstErr == nil {
+						firstErr = err
+					}
+					errMu.Unlock()
+					return
+				}
 				insertTime := time.Since(startInsert)
 
 				// 统计
-				go logBatchStats(i, j, insertTime, WriteConf.BatchSize)
+				logBatchStats(i, j, insertTime, WriteConf.BatchSize)
 			}
-		}()
+		}(i)
 	}
 
 	wg.Wait()
-	return nil
+	return firstErr
 }
 
 func CloseGendata() {

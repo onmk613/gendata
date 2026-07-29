@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"gendata/pkg/action"
+	"gendata/internal/action"
 
 	"github.com/spf13/cobra"
 )

@@ -1,9 +1,10 @@
 package core
 
 import (
-	"gendata/pkg/generator"
 	"math/rand/v2"
 	"time"
+
+	"gendata/internal/generator"
 
 	"github.com/google/uuid"
 )

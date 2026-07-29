@@ -3,11 +3,14 @@ package generator
 import (
 	"encoding/json"
 	"fmt"
-	"gendata/pkg/generator/data"
 	"math/rand"
 	"regexp"
 	"strings"
+
+	"gendata/internal/generator/data"
 )
+
+var placeholderRegex = regexp.MustCompile(`\{([^{}]+)\}`)
 
 func JSONString() string {
 	length := rand.Intn(10) + 1
@@ -44,7 +47,6 @@ func Emoji() data.Emoji {
 	a := data.Emojis[rand.Intn(len(data.Emojis))]
 	b := data.SentencesEmoji[rand.Intn(len(data.SentencesEmoji))]
 
-	var placeholderRegex = regexp.MustCompile(`\{([^{}]+)\}`)
 	a.SentencesEmoji = placeholderRegex.ReplaceAllString(b, a.Emoji)
 
 	return a

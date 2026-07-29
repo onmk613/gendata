@@ -17,7 +17,7 @@ var (
 	DB *gorm.DB
 )
 
-func GetDriver(driverName string, size int) error {
+func GetDriver(driverName string, size, concurrency int) error {
 	var open gorm.Dialector
 	dsn := SqlConf
 
@@ -28,7 +28,7 @@ func GetDriver(driverName string, size int) error {
 	case "postgres":
 		open = postgres.Open(dsn.getPostgresDsn())
 	case "clickhouse":
-		clickhouse.Open(dsn.getClickhouseDsn())
+		open = clickhouse.Open(dsn.getClickhouseDsn())
 	default:
 		return fmt.Errorf("Unsupported Database")
 	}
@@ -51,6 +51,21 @@ func GetDriver(driverName string, size int) error {
 
 	// 注册插入控制插件
 	db.Use(NewBatchPlugin(size))
+
+	// 配置连接池（ClickHouse 使用原生客户端，跳过标准连接池配置）
+	if driverName != "clickhouse" {
+		sqlDB, err := db.DB()
+		if err != nil {
+			return err
+		}
+		maxOpen := concurrency
+		if maxOpen < 1 {
+			maxOpen = 1
+		}
+		sqlDB.SetMaxOpenConns(maxOpen)
+		sqlDB.SetMaxIdleConns(maxOpen)
+		sqlDB.SetConnMaxLifetime(time.Hour)
+	}
 
 	DB = db
 	return nil

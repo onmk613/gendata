@@ -2,6 +2,7 @@ package action
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 )
 
@@ -47,8 +48,21 @@ func calcBatchCount(rows interface{}, dbType string) (int, error) {
 		return 0, fmt.Errorf("unsupported element type: %s", elemType.Kind())
 	}
 
-	limit, _ := DBLimits[dbType]
+	limit, ok := DBLimits[dbType]
+	if !ok {
+		return 0, fmt.Errorf("unsupported database type: %s", dbType)
+	}
+	if columnCount == 0 {
+		return 0, fmt.Errorf("column count is 0, cannot calculate batch size")
+	}
+	// maxParams == 0 表示该数据库不限制参数数量（如 ClickHouse），返回大值交由实际 BatchSize 控制
+	if limit.maxParams == 0 {
+		return math.MaxInt32, nil
+	}
 	b := int(float64(limit.maxParams/columnCount) * 0.95)
+	if b <= 0 {
+		return 0, fmt.Errorf("calculated batch size is 0 (maxParams=%d, columnCount=%d)", limit.maxParams, columnCount)
+	}
 	return b, nil
 }
 

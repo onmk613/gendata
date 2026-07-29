@@ -1,10 +1,11 @@
 package generator
 
 import (
-	"gendata/pkg/generator/data"
 	"math"
 	"math/rand/v2"
 	"strconv"
+
+	"gendata/internal/generator/data"
 )
 
 func pick(key string) string {

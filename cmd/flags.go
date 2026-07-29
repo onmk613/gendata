@@ -4,12 +4,12 @@ import (
 	"log/slog"
 	"os"
 
+	"gendata/internal/action"
+	"gendata/internal/core"
+	mydriver "gendata/internal/driver"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"gendata/pkg/action"
-	"gendata/pkg/core"
-	mydriver "gendata/pkg/driver"
 )
 
 var debugFlag bool

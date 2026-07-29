@@ -1,9 +1,10 @@
 package generator
 
 import (
-	"gendata/pkg/generator/data"
 	"math/rand/v2"
 	"strconv"
+
+	"gendata/internal/generator/data"
 )
 
 // 地址 街道 单元 城市 州/省 邮编 国家

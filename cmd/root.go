@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"gendata/internal/action"
 
-	"gendata/pkg/action"
+	"github.com/spf13/cobra"
 )
 
 func NewRootCmd(args []string) (*cobra.Command, error) {
