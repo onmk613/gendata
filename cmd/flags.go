@@ -15,9 +15,12 @@ import (
 var debugFlag bool
 
 func addRootFlags(flags *pflag.FlagSet) {
-	flags.IntVar(&action.WriteConf.Concurrency, "concurrency", 1, "Number of concurrent workers to write data")
+	flags.IntVar(&action.WriteConf.Concurrency, "concurrency", 1, "Number of concurrent write workers")
 	flags.IntVar(&action.WriteConf.BatchSize, "batchsize", 1000, "Number of records to write in each batch")
-	flags.IntVar(&action.WriteConf.RepeatCount, "repeatcount", 10, "Number of times to repeat the batch write (total records = batchsize * repeatcount)")
+	flags.IntVar(&action.WriteConf.RepeatCount, "repeatcount", 10, "Number of times to repeat the batch write (ignored when --duration > 0 in write mode)")
+	flags.StringVar(&action.WriteConf.Mode, "mode", "write", "Run mode: write | read | mixed")
+	flags.IntVar(&action.WriteConf.ReadConcurrency, "readconcurrency", 0, "Number of concurrent read workers (0 = same as --concurrency)")
+	flags.DurationVar(&action.WriteConf.Duration, "duration", 0, "Run for a fixed duration (e.g. 60s, 2m); required for read/mixed mode")
 	flags.BoolVar(&debugFlag, "debug", false, "Print log")
 }
 

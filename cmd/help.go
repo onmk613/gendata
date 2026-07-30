@@ -20,11 +20,20 @@ Available Commands:
   help         Help about any command
 
 Global Flags:
-  --concurrency   int      Number of concurrent workers to use for data generation (default: 1)
-  --batchsize     int      Number of records to process in each batch (default: 1000)
-  --repeatcount   int      Number of times to repeat the batch (default: 10)
-                           Total records generated = batchsize * repeatcount * concurrency (default: 10000)
-  --debug         bool     Enable debug log output
+  --concurrency      int       Number of concurrent write workers (default: 1)
+  --batchsize        int       Number of records to write in each batch (default: 1000)
+  --repeatcount      int       Number of times to repeat the batch write (default: 10)
+                               Used only in write mode when --duration = 0;
+                               total records = batchsize * repeatcount * concurrency
+  --mode             string    Run mode: write | read | mixed (default: write)
+                               write  = pure insert throughput test
+                               read   = point select by user_id (requires --duration)
+                               mixed  = concurrent read + write (requires --duration)
+  --readconcurrency   int      Number of concurrent read workers (default: same as --concurrency)
+                               Read/write ratio is controlled by concurrency vs readconcurrency
+  --duration         duration  Run for a fixed duration, e.g. 60s, 2m (default: 0 = disabled)
+                               Required for read/mixed mode; overrides --repeatcount in write mode
+  --debug            bool      Enable debug log output
 
 Database Connection Flags (required for mysql, postgres, clickhouse):
   --host             string          Database host
