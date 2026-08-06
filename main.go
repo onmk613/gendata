@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cmd, err := cmd.NewRootCmd(os.Args[1:])
+	cmd, err := cmd.NewRootCmd()
 	if err != nil {
 		slog.Error("New Command Failed", slog.Any("error", err))
 		os.Exit(1)

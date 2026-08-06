@@ -6,11 +6,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewRootCmd(args []string) (*cobra.Command, error) {
+func NewRootCmd() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:          "gendata",
 		Short:        "Gen data to databases",
 		SilenceUsage: true,
+		PersistentPreRun: func(_ *cobra.Command, _ []string) {
+			setupLogger()
+		},
 		PersistentPostRun: func(_ *cobra.Command, _ []string) {
 			action.CloseGendata()
 		},
@@ -21,12 +24,6 @@ func NewRootCmd(args []string) (*cobra.Command, error) {
 
 	flags := cmd.PersistentFlags()
 	addRootFlags(flags)
-
-	flags.ParseErrorsAllowlist.UnknownFlags = true
-	flags.Parse(args)
-
-	// 在flag解析之后立即设置日志
-	setupLogger()
 
 	cmd.AddCommand(newMysqlCmd(), newPostgresCmd(), newClickhouseCmd())
 	return cmd, nil

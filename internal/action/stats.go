@@ -29,6 +29,7 @@ var (
 
 	// 读统计
 	readTotalTime time.Duration
+	readWallTime  time.Duration
 	readCount     int64
 	readLatencies []time.Duration
 )
@@ -44,7 +45,6 @@ type WriteConfiguration struct {
 	Concurrency     int
 	BatchSize       int
 	RepeatCount     int
-	RowSize         int
 	Mode            string        // write | read | mixed
 	ReadConcurrency int           // 读 worker 数（<=0 时在 Run 中置为 Concurrency）
 	Duration        time.Duration // >0 时按持续时间运行，忽略 RepeatCount
@@ -108,10 +108,17 @@ func printThroughputStats() {
 	}
 
 	if hasRead {
-		qps := float64(readCount) / readTotalTime.Seconds()
+		wall := readWallTime.Seconds()
+		if wall <= 0 {
+			wall = readTotalTime.Seconds()
+		}
+		if wall <= 0 {
+			wall = 1
+		}
+		qps := float64(readCount) / wall
 		fmt.Printf("\n=== Read ===\n")
 		fmt.Printf("Total: Time = %.3fs, Queries = %d, QPS = %.0f\n",
-			readTotalTime.Seconds(), readCount, qps)
+			wall, readCount, qps)
 		printLatency("QueryLatency", readLatencies)
 	}
 

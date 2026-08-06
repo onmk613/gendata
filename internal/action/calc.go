@@ -7,17 +7,13 @@ import (
 )
 
 type DBLimit struct {
-	maxParams  int // 最大参数数量（0 = 不限制）
-	maxRowSize int // 单次插入的包大小限制 ( 0 = 不限制)
+	maxParams int // 最大参数数量（0 = 不限制）
 }
 
-// mysql 默认4MB
-// postgres 默认1GB
-// Clickhouse 默认不限制，也按1GB算
 var DBLimits = map[string]DBLimit{
-	"postgres":   {maxParams: 65535, maxRowSize: 4190000},
-	"mysql":      {maxParams: 65535, maxRowSize: 1073740000},
-	"clickhouse": {maxParams: 0, maxRowSize: 1073740000},
+	"postgres":   {maxParams: 65535},
+	"mysql":      {maxParams: 65535},
+	"clickhouse": {maxParams: 0}, // 原生 Batch 写入，参数数量不受限
 }
 
 // 计算安全批大小

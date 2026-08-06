@@ -1,33 +1,8 @@
 package generator
 
 import (
-	"math/rand/v2"
 	"time"
 )
-
-var zodiac = []string{
-	"Aries",
-	"Taurus",
-	"Gemini",
-	"Cancer",
-	"Leo",
-	"Virgo",
-	"Libra",
-	"Scorpio",
-	"Sagittarius",
-	"Capricorn",
-	"Aquarius",
-	"Pisces",
-}
-
-// 随机生成生日信息
-func Age() int {
-	return 18 + rand.IntN(63)
-}
-
-func Zodiac() string {
-	return zodiac[rand.IntN(12)]
-}
 
 // 以下通过接口实现age birthday zodiac 相对应的数据
 type BirthdayInfo struct {
@@ -36,12 +11,12 @@ type BirthdayInfo struct {
 	Zodiac   string
 }
 
-func Birthday() *BirthdayInfo {
-	age := 18 + rand.IntN(63)
+func (g *Random) Birthday() *BirthdayInfo {
+	age := 18 + g.IntN(63)
 	year := time.Now().Year() - age
-	month := time.Month(1 + rand.IntN(12))
+	month := time.Month(1 + g.IntN(12))
 	maxDay := time.Date(year, month+1, 0, 0, 0, 0, 0, time.UTC).Day()
-	day := 1 + rand.IntN(maxDay)
+	day := 1 + g.IntN(maxDay)
 
 	birthday := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 

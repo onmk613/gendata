@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"math/rand/v2"
 	"strconv"
 
 	"gendata/internal/generator/data"
@@ -18,18 +17,18 @@ type AddressInfo struct {
 	Country string `json:"country" xml:"country"`
 }
 
-func Address() *AddressInfo {
-	street := Street()
-	city := City()
-	state := State()
-	zip := Zip()
+func (g *Random) Address() *AddressInfo {
+	street := g.Street()
+	city := g.City()
+	state := g.State()
+	zip := g.Zip()
 
 	// 30% chance to include a unit in the address
 	var unitStr string
 	var unitField string
-	if 1+rand.IntN(10) <= 3 {
-		unitStr = ", " + Unit()
-		unitField = Unit()
+	if 1+g.IntN(10) <= 3 {
+		unitStr = ", " + g.Unit()
+		unitField = g.Unit()
 	}
 
 	addressStr := street + unitStr + ", " + city + ", " + state + " " + zip
@@ -41,60 +40,60 @@ func Address() *AddressInfo {
 		City:    city,
 		State:   state,
 		Zip:     zip,
-		Country: Country(),
+		Country: g.Country(),
 	}
 }
 
-func Street() string {
+func (g *Random) Street() string {
 	var street string
-	switch rand.IntN(2) {
+	switch g.IntN(2) {
 	case 0:
-		street = streetNumber() + " " + streetPrefix() + " " + streetName() + streetSuffix()
+		street = g.streetNumber() + " " + g.streetPrefix() + " " + g.streetName() + g.streetSuffix()
 	case 1:
-		street = streetNumber() + " " + streetName() + streetSuffix()
+		street = g.streetNumber() + " " + g.streetName() + g.streetSuffix()
 	}
 
 	return street
 }
 
-func streetNumber() string {
-	return strconv.Itoa(100 + rand.IntN(10000))
+func (g *Random) streetNumber() string {
+	return strconv.Itoa(100 + g.IntN(10000))
 }
 
-func streetPrefix() string {
+func (g *Random) streetPrefix() string {
 	prefixs := data.Address["street_prefix"]
-	return prefixs[rand.IntN(len(prefixs))]
+	return prefixs[g.IntN(len(prefixs))]
 }
 
-func streetName() string {
+func (g *Random) streetName() string {
 	names := data.Address["street_name"]
-	return names[rand.IntN(len(names))]
+	return names[g.IntN(len(names))]
 }
 
-func streetSuffix() string {
+func (g *Random) streetSuffix() string {
 	suffixs := data.Address["street_suffix"]
-	return suffixs[rand.IntN(len(suffixs))]
+	return suffixs[g.IntN(len(suffixs))]
 }
 
-func Unit() string {
+func (g *Random) Unit() string {
 	unitTypes := data.Address["unit"]
-	return unitTypes[rand.IntN(len(unitTypes))] + " " + strconv.Itoa(100+rand.IntN(1000))
+	return unitTypes[g.IntN(len(unitTypes))] + " " + strconv.Itoa(100+g.IntN(1000))
 }
 
-func City() string {
+func (g *Random) City() string {
 	citys := data.Address["city"]
-	return citys[rand.IntN(len(citys))]
+	return citys[g.IntN(len(citys))]
 }
 
-func State() string {
+func (g *Random) State() string {
 	states := data.Address["state"]
-	return states[rand.IntN(len(states))]
+	return states[g.IntN(len(states))]
 }
 
-func Zip() string {
-	return strconv.Itoa(10000 + rand.IntN(100000))
+func (g *Random) Zip() string {
+	return strconv.Itoa(10000 + g.IntN(100000))
 }
 
-func Country() string {
-	return data.Country[rand.IntN(len(data.Country))]
+func (g *Random) Country() string {
+	return data.Country[g.IntN(len(data.Country))]
 }

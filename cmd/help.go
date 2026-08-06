@@ -21,7 +21,8 @@ Available Commands:
 
 Global Flags:
   --concurrency      int       Number of concurrent write workers (default: 1)
-  --batchsize        int       Number of records to write in each batch (default: 1000)
+  --batchsize        int       Number of records to generate per write batch (default: 1000)
+                               Large batches are split automatically to stay within DB limits
   --repeatcount      int       Number of times to repeat the batch write (default: 10)
                                Used only in write mode when --duration = 0;
                                total records = batchsize * repeatcount * concurrency
@@ -48,6 +49,7 @@ Database Connection Flags (required for mysql, postgres, clickhouse):
 									 Test: --additionalargs "sslmode=disable,charset=utf8mb4"
 Note:
 The actual table and its structure are fixed; the --table option merely changes the default table name used for insertions.
+Read mode never creates or alters the table; prepare data with write mode first.
 `
 
 // CustomHelpFunc 自定义帮助输出

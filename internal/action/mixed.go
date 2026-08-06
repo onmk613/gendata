@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"math/rand/v2"
@@ -10,6 +11,9 @@ import (
 
 	"gendata/internal/core"
 	mydriver "gendata/internal/driver"
+	"gendata/internal/generator"
+
+	"gorm.io/gorm"
 )
 
 // 读延迟样本上限，避免长时间运行时占用过多内存（QPS 仍按全量统计）
@@ -25,9 +29,9 @@ func newUserIDPool() *userIDPool {
 	return &userIDPool{ids: make([]string, 0, 1024)}
 }
 
-func (p *userIDPool) add(id string) {
+func (p *userIDPool) addAll(ids []string) {
 	p.mu.Lock()
-	p.ids = append(p.ids, id)
+	p.ids = append(p.ids, ids...)
 	p.mu.Unlock()
 }
 
@@ -51,10 +55,6 @@ var idPool *userIDPool
 
 // runReadOnly 纯读模式：先从表里加载 user_id，再并发做点查
 func runReadOnly() error {
-	if WriteConf.Duration <= 0 {
-		return fmt.Errorf("--duration is required for read mode (e.g. --duration=60s)")
-	}
-
 	idPool = newUserIDPool()
 	loadUserIDsFromDB(100000)
 	if idPool.size() == 0 {
@@ -64,6 +64,11 @@ func runReadOnly() error {
 
 	ctx, cancel := runCtx()
 	defer cancel()
+
+	start := time.Now()
+	defer func() {
+		readWallTime = time.Since(start)
+	}()
 
 	var (
 		wg       sync.WaitGroup
@@ -83,10 +88,6 @@ func runReadOnly() error {
 
 // runMixed 读写混合：先 seed 一批数据填充读池，然后并发读写
 func runMixed() error {
-	if WriteConf.Duration <= 0 {
-		return fmt.Errorf("--duration is required for mixed mode (e.g. --duration=60s)")
-	}
-
 	idPool = newUserIDPool()
 
 	// 预写一批数据，保证读池非空
@@ -94,17 +95,24 @@ func runMixed() error {
 	if seed < 1000 {
 		seed = 1000
 	}
-	rows := core.GenerateDefaultTableData(seed)
-	if err := mydriver.DB.Create(rows).Error; err != nil {
+	rows := core.GenerateDefaultTableData(seed, generator.NewRandom(uint64(time.Now().UnixNano())))
+	if err := mydriver.InsertRows(context.Background(), rows); err != nil {
 		return fmt.Errorf("mixed seed insert failed: %w", err)
 	}
-	for _, r := range rows {
-		idPool.add(r.UserID)
+	userIDs := make([]string, len(rows))
+	for i, r := range rows {
+		userIDs[i] = r.UserID
 	}
+	idPool.addAll(userIDs)
 	slog.Info("mixed_seeded", slog.Int("rows", seed), slog.Int("pool", idPool.size()))
 
 	ctx, cancel := runCtx()
 	defer cancel()
+
+	start := time.Now()
+	defer func() {
+		readWallTime = time.Since(start)
+	}()
 
 	var (
 		wg       sync.WaitGroup
@@ -156,6 +164,10 @@ func runReadWorker(ctx context.Context, id int, errMu *sync.Mutex, firstErr *err
 		err := mydriver.DB.Where("user_id = ?", uid).First(&row).Error
 		latency := time.Since(start)
 		if err != nil {
+			// 单条记录被外部删除时跳过，不终止整个压测
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				continue
+			}
 			errMu.Lock()
 			if *firstErr == nil {
 				*firstErr = err
@@ -174,7 +186,5 @@ func loadUserIDsFromDB(limit int) {
 		slog.Warn("load_user_ids_failed", slog.Any("error", err))
 		return
 	}
-	for _, id := range ids {
-		idPool.add(id)
-	}
+	idPool.addAll(ids)
 }

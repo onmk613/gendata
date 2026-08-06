@@ -16,7 +16,8 @@ Available Commands:
 
 Global Flags:
   --concurrency       int       Number of concurrent write workers (default: 1)
-  --batchsize         int       Number of records to write in each batch (default: 1000)
+  --batchsize         int       Number of records to generate per write batch (default: 1000)
+                                Large batches are split automatically to stay within DB limits
   --repeatcount       int       Number of times to repeat the batch write (default: 10)
                                 Only used in write mode when --duration = 0
   --mode              string    Run mode: write | read | mixed (default: write)
@@ -71,6 +72,18 @@ Total: Time = 0.694s, Mean = 12972 row/s, Max = 21287 row/s, Min = 7765 row/s
 Read/write ratio in `mixed` is set by `--concurrency` (writers) vs `--readconcurrency` (readers).
 
 Latency percentiles (P50/P95/P99) are reported for both read and write.
+
+Note: `read` mode never creates or alters the table; run `write` (or an external script)
+to prepare data first.
+
+## Database differences
+
+- **MySQL / PostgreSQL**: `user_id` is a real unique index. A write batch is split into
+  smaller `INSERT`s when it would exceed the driver's parameter limit (65535).
+- **ClickHouse**: the table uses `ENGINE=MergeTree() ORDER BY user_id` so point selects
+  can use the sort key. ClickHouse has no unique constraints, so `user_id` uniqueness is
+  probabilistic (UUID collisions are negligible). Writes use the native batch protocol;
+  `--batchsize` is the number of rows per native batch.
 
 ### Read (point select)
 ```bash
